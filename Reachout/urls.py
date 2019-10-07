@@ -20,6 +20,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
+    path('',views.listUsers),
     path('admin/', admin.site.urls),
 	path('test/',views.test,name='test'),
     path('listUsers/',views.listUsers),
@@ -48,4 +49,6 @@ urlpatterns = [
 	path('get_event_investment/',views.get_event_investment,name="get_event_investment"),
     path('add_investment/',views.add_investment,name="add_investment"),
     path('authenticateUser/',views.authenticateUser,name="authenticateUser"),
+
+    path('get_latest_item_ids/',views.get_latest_item_ids,name="get_latest_item_ids"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
