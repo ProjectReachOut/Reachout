@@ -30,7 +30,39 @@ def listUsers(request):
 	users = User.objects.all()
 	return render(request,'user.html',{'user':users})
 
-@csrf_exempt	
+@csrf_exempt
+def get_latest_item_ids(request):
+    user_name = request.POST['user_name'].strip()
+    last_article_id = -1
+    last_my_event_id = -1
+    last_event_id = -1
+    output_dict = {}
+    try:
+        if (user_name != '0_guest'):
+            my_events = User.objects.get(username=user_name).event_set.all().order_by('id')
+            last_my_event_id = my_events[len(my_events)-1].id
+    except:
+        last_my_event_id = -1
+
+    try:
+        articles = Article.objects.order_by('id')
+        last_article_id = articles[len(articles)-1].id
+    except:
+        last_article_id = -1
+
+    try:
+        events = Event.objects.order_by('id')
+        last_event_id = events[len(events)-1].id
+    except:
+        last_event_id = -1
+
+    output_dict['last_article_id'] = last_article_id
+    output_dict['last_my_event_id'] = last_my_event_id
+    output_dict['last_event_id'] = last_event_id
+    return JsonResponse(output_dict,safe=False)
+
+
+@csrf_exempt
 def add_user(request):
 	print(request.POST)
 	user_name = request.POST['user_name'].strip()
@@ -66,7 +98,7 @@ def authenticateUser(request):
 		return HttpResponse("200")
 	else:
 		return HttpResponse("404")
-		
+
 @csrf_exempt
 def all_users(request):
 	users = User.objects.all()
@@ -165,23 +197,25 @@ def delete_article(request):
 @csrf_exempt
 def get_articles(request):
 	print("returned articles")
-	if(custom_authenticate(request.META['HTTP_AUTHORIZATION'])):
-		articles = Article.objects.all()
-		article_list = []
-		for a in articles:
-			temp={}
-			temp['article_id'] = a.id
-			temp['username'] = str(a.user)
-			temp['profile_picture_url'] = "/media/"+str(User.objects.get(username=a.user).profile.avatar)
-			temp['desc'] = a.description
-			temp['image'] = "/media/"+str(a.image)
-			#temp['time_stamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-			temp['time_stamp'] = a.time_stamp.strftime("%Y-%m-%d %H:%M:%S")
-			article_list.append(temp)
+# 	 if(custom_authenticate(request.META['HTTP_AUTHORIZATION'])):
 
-		return JsonResponse(article_list,safe=False)
-	else:
-		return HttpResponse("Authentication error!!!")
+	articles = Article.objects.all()
+	article_list = []
+	for a in articles:
+		temp={}
+		temp['article_id'] = a.id
+		temp['username'] = str(a.user)
+		temp['profile_picture_url'] = "/media/"+str(User.objects.get(username=a.user).profile.avatar)
+		temp['desc'] = a.description
+		temp['image'] = "/media/"+str(a.image)
+		#temp['time_stamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		temp['time_stamp'] = a.time_stamp.strftime("%Y-%m-%d %H:%M:%S")
+		article_list.append(temp)
+
+	return JsonResponse(article_list,safe=False)
+
+# 	else:
+# 		return HttpResponse("Authentication error!!!")
 
 
 @csrf_exempt
@@ -193,7 +227,7 @@ def add_event(request):
 
 		print("--------------------------------------------------------")
 
-		
+
 		title = request.POST['title']
 		description = request.POST['description']
 		assigned_by = request.POST['assign_by']
@@ -208,7 +242,7 @@ def add_event(request):
 
 
 		organizers = list(map(str,request.POST['organizers'][1:-1].split(',')))
-		
+
 
 		event = Event.objects.create(
 			title=title,
@@ -229,9 +263,9 @@ def add_event(request):
 				event.organizers.add(organizer_object)
 				event.save()
 			else:
-				could_not_add.append(organizer_name.strip())		
+				could_not_add.append(organizer_name.strip())
 				return JsonResponse(406,safe=False)
-		
+
 		# print(could_not_add)
 		# return JsonResponse({"could_not_add":could_not_add},safe=False)
 		return JsonResponse(200,safe=False)
@@ -246,7 +280,7 @@ def get_my_events(request):
 
 	print("my_events")
 	print(request.POST)
-	
+
 	user_name = request.POST['user_name']
 
 	events = User.objects.get(username=user_name).event_set.all()
@@ -495,7 +529,7 @@ def get_my_articles(request):
 	if(custom_authenticate(request.META['HTTP_AUTHORIZATION'])):
 		try:
 			user_name = request.POST['user_name']
-			
+
 			articles = User.objects.get(username=user_name).article_set.all()
 
 			article_list = []
@@ -565,7 +599,7 @@ def get_user_details(request):
 	print(request.POST)
 	if(custom_authenticate(request.META['HTTP_AUTHORIZATION'])):
 		user_name = request.POST['username'].strip()
-	
+
 		user = User.objects.get(username=user_name)
 
 		u={}
@@ -596,7 +630,7 @@ def update_user_profile_picture(request):
 	if(custom_authenticate(request.META['HTTP_AUTHORIZATION'])):
 		user_name = request.POST['user_name'].strip()
 		image = request.FILES['image']
-	
+
 		user = User.objects.get(username=user_name)
 
 		user.profile.avatar = image
