@@ -51,4 +51,6 @@ urlpatterns = [
     path('authenticateUser/',views.authenticateUser,name="authenticateUser"),
 
     path('get_latest_item_ids/',views.get_latest_item_ids,name="get_latest_item_ids"),
+    path('retrieve_articles/',views.retrieve_articles,name="retrieve_articles"),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

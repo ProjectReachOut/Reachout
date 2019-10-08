@@ -217,6 +217,47 @@ def get_articles(request):
 # 	else:
 # 		return HttpResponse("Authentication error!!!")
 
+def ReverseList(lst):
+    newList = lst[::-1]
+    return newList
+
+@csrf_exempt
+def retrieve_articles(request):
+	last_viewed_id = int(request.POST['last_viewed_id'])
+	max = 10
+	sorted_article_list = []
+	all_articles = Article.objects.all()
+
+	response_article_list = []
+
+	if last_viewed_id == -1:
+		# Return latest 10 articles
+		sorted_article_list = all_articles.order_by('-id')[:max]
+	else:
+		# Return latest 10 articles starting from id: last_viewed_id
+		all_articles = ReverseList(all_articles)
+		for article in all_articles:
+			if max <= 0:
+				break;
+			if article.id < last_viewed_id:
+				max = max - 1
+				sorted_article_list.append(article)
+
+	for a in sorted_article_list:
+		temp={}
+		temp['article_id'] = a.id
+		temp['username'] = str(a.user)
+		temp['profile_picture_url'] = "/media/"+str(User.objects.get(username=a.user).profile.avatar)
+		temp['desc'] = a.description
+		temp['image'] = "/media/"+str(a.image)
+		#temp['time_stamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		temp['time_stamp'] = a.time_stamp.strftime("%Y-%m-%d %H:%M:%S")
+		response_article_list.append(temp)
+
+# 	if last_viewed_id != -1:
+# 	    response_article_list.reverse()
+
+	return JsonResponse(response_article_list,safe=False)
 
 @csrf_exempt
 def add_event(request):
