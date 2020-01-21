@@ -110,6 +110,7 @@ def all_users(request):
 		temp['id']=user.profile.id
 		temp['username'] = user.username
 		temp['image'] = '/media/'+str(user.profile.avatar)
+		temp['email'] = user.email
 		if user.is_superuser:
 			temp['account_type'] = "superuser"
 		elif user.is_staff:
@@ -208,6 +209,7 @@ def get_articles(request):
 		temp['profile_picture_url'] = "/media/"+str(User.objects.get(username=a.user).profile.avatar)
 		temp['desc'] = a.description
 		temp['image'] = "/media/"+str(a.image)
+		temp['email'] = User.objects.get(username=a.user).email
 		#temp['time_stamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 		temp['time_stamp'] = a.time_stamp.strftime("%Y-%m-%d %H:%M:%S")
 		article_list.append(temp)
